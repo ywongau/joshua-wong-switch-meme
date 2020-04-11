@@ -6,22 +6,9 @@
         height: 600px;
         text-align: center;
         margin: auto;
-        position: relative;
       }
-      #overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        perspective: 400px;
-        transform-style: preserve-3d;
-      }
-      #overlay img {
-        transform: rotateY(3deg) translateX(50px) translateY(313px)
-          rotate(-0deg);
-        width: 433px;
-        height: 243px;
-        filter: blur(1px);
-        object-fit: cover;
+      canvas {
+        margin-bottom: 16px;
       }
       body {
         margin: auto;
@@ -30,20 +17,56 @@
   </head>
   <body>
     <div id="root">
-      <img id="background" width="800" height="600" src="image/wong.png" />
-      <div id="overlay"><img src="image/wong.png" /></div>
+      <canvas width="800" height="600"></canvas>
+      <input type="file" accept="image/*" />
     </div>
-    <input type="file" accept="image/*" />
     <script>
+      const overlayViewport = {
+        width: 425,
+        height: 239,
+      };
+      const canvas = document.querySelector('canvas');
+      const ctx = canvas.getContext('2d');
+      const background = new Image();
+      const overlay = new Image();
       const input = document.querySelector('input');
-      const overlayImage = document.querySelector('#overlay img');
-      input.onchange = () => {
+
+      const drawBackground = () => ctx.drawImage(background, 0, 0, 800, 600);
+      const drawOverlay = () => {
+        ctx.resetTransform();
+        drawBackground();
+        ctx.filter = 'blur(1px)';
+        ctx.rotate((-1.21 * Math.PI) / 180);
+        ctx.beginPath();
+        ctx.moveTo(40, 322);
+        ctx.lineTo(462, 317);
+        ctx.lineTo(470, 552);
+        ctx.lineTo(36, 564);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(
+          overlay,
+          36,
+          316,
+          overlayViewport.width,
+          (overlayViewport.width / overlay.width) * overlay.height
+        );
+      };
+      const readImage = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
-          overlayImage.setAttribute('src', e.target.result);
+          overlay.setAttribute('src', e.target.result);
         };
         reader.readAsDataURL(input.files[0]);
       };
+      const init = () => {
+        drawBackground();
+        input.addEventListener('change', readImage);
+      };
+
+      overlay.addEventListener('load', drawOverlay);
+      background.addEventListener('load', init);
+      background.src = 'image/wong.jpg';
     </script>
   </body>
 </html>
